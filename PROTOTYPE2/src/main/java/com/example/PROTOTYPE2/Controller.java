@@ -11,8 +11,8 @@ import java.util.List;
 //@CrossOrigin(origins = "http://localhost:5173")
 public class Controller {
 
-    @GetMapping("/question")
-    public Form_dto getQuestion() {
+    @GetMapping("/form")
+    public Form_dto getForm() {
         return new Form_dto(
                 1,
                 "What is your favourite programming language?",

@@ -8,13 +8,13 @@ export default function App() { //Defines React Component called App
     const [err, setErr] = useState(null); // err Holds an error message if fetch fails.
 
     useEffect(() => {
-        fetch("/api/question") //run the fetch when component loads.
+        fetch("/api/form") //run the fetch when component loads.
             .then((res) => { //res is the HTTP response object.
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
             })
             .then((json) => {
-                console.log("GET /api/question:", json);
+                console.log("GET /api/form:", json);
                 setData(json);
             })
             .catch((e) => {
