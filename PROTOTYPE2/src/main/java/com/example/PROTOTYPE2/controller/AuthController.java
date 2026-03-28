@@ -1,4 +1,4 @@
-package com.example.PROTOTYPE2;
+package com.example.PROTOTYPE2.controller;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -6,10 +6,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    //Not sure if these are meant to be controller classes, what are service classes then???
 
+//    private final AuthService authService;
+//
+//    public AuthController(AuthService authService) {
+//        this.authService = authService;
+//    }
 
-    
     @PostMapping("/signup")
     public void signUp(@RequestBody int c) { //Edit this methods input parameters.
     }
