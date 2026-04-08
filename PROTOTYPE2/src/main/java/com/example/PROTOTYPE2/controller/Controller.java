@@ -20,10 +20,4 @@ public class Controller {
                 List.of("Java", "JavaScript", "Python", "C#")
         );
     }
-
-//    @PostMapping("/answer")
-//    public ResponseEntity<?> submitAnswer(@RequestBody Answer_dto answer) { // "Takes the Json from the frontend and converts it into an Anser_dto object"
-//        System.out.println("Received answer: " + answer); //just printing/logging it out for now.
-//        return ResponseEntity.ok().build(); // This is the Http request im sending back to the React hopefully. means Status= 200 Ok.
-//    }
 }
