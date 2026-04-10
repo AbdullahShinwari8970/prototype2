@@ -17,6 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.naming.directory.Attributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import java.util.Hashtable;
+
 @Service
 public class AuthService {
 
@@ -37,7 +42,30 @@ public class AuthService {
      * @param request the signup request containing email, password, and name
      * @return a signed JWT token for the newly registered researcher
      */
+    /**
+     * Checks if the domain of the given email has MX (mail exchange) records,
+     * meaning it is configured to receive emails.
+     *
+     * @param email the email address to check
+     * @return true if the domain has MX records, false otherwise
+     */
+    private boolean hasMxRecord(String email) {
+        try {
+            String domain = email.substring(email.indexOf('@') + 1);
+            Hashtable<String, String> env = new Hashtable<>();
+            env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
+            DirContext ctx = new InitialDirContext(env);
+            Attributes attrs = ctx.getAttributes(domain, new String[]{"MX"});
+            return attrs.get("MX") != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public String signup(SignupRequest request) {
+        if (!hasMxRecord(request.getEmail())) {
+            throw new IllegalStateException("Email domain does not exist.");
+        }
         if (researcherRepository.existsByEmail(request.getEmail())) {
             throw new IllegalStateException("Email already registered.");
         }
