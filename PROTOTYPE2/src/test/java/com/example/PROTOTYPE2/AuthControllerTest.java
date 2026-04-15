@@ -1,7 +1,6 @@
 package com.example.PROTOTYPE2;
 
 
-import com.example.PROTOTYPE2.dto.request.SignupRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
