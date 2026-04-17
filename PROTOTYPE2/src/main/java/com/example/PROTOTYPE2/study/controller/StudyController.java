@@ -1,5 +1,6 @@
 package com.example.PROTOTYPE2.study.controller;
 
+import com.example.PROTOTYPE2.shared.security.ResearcherDetailsImpl;
 import com.example.PROTOTYPE2.study.dto.EnrollmentRequest;
 import com.example.PROTOTYPE2.study.dto.StudyFullRequest;
 import com.example.PROTOTYPE2.study.dto.StudyRequest;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,9 +32,10 @@ public class StudyController {
 
     @Operation(summary = "Create a study")
     @PostMapping("/api/studies")
-    public ResponseEntity<?> createStudy(@Valid @RequestBody StudyRequest request) {
+    public ResponseEntity<?> createStudy(@Valid @RequestBody StudyRequest request,
+                                         @AuthenticationPrincipal ResearcherDetailsImpl principal) {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(studyService.create(request));
+            return ResponseEntity.status(HttpStatus.CREATED).body(studyService.create(request, principal.getId().longValue()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
@@ -40,9 +43,10 @@ public class StudyController {
 
     @Operation(summary = "Create a full study with surveys and questions in one request")
     @PostMapping("/api/studies/full")
-    public ResponseEntity<?> createStudyFull(@Valid @RequestBody StudyFullRequest request) {
+    public ResponseEntity<?> createStudyFull(@Valid @RequestBody StudyFullRequest request,
+                                             @AuthenticationPrincipal ResearcherDetailsImpl principal) {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(studyService.createFull(request));
+            return ResponseEntity.status(HttpStatus.CREATED).body(studyService.createFull(request, principal.getId().longValue()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }

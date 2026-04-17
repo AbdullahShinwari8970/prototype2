@@ -28,15 +28,15 @@ public class StudyService {
     }
 
     @Transactional
-    public StudyResponse create(StudyRequest request) {
-        Study study = new Study(request.getName(), request.getResearcherId());
+    public StudyResponse create(StudyRequest request, Long researcherId) {
+        Study study = new Study(request.getName(), researcherId);
         return StudyResponse.from(studyRepository.save(study));
     }
 
     // Creates a full study with surveys and questions in one transaction
     @Transactional
-    public StudyResponse createFull(StudyFullRequest request) {
-        Study study = new Study(request.getName(), request.getResearcherId());
+    public StudyResponse createFull(StudyFullRequest request, Long researcherId) {
+        Study study = new Study(request.getName(), researcherId);
         studyRepository.save(study);
 
         for (SurveyRequest surveyRequest : request.getSurveys()) {
