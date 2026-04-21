@@ -20,7 +20,6 @@ public class Question {
     @ManyToOne(optional = false)
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
-
     protected Question() {}
 
     public Question(String text, String type, Survey survey) {
