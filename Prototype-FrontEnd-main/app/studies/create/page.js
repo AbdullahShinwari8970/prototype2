@@ -7,7 +7,7 @@ import { createFullStudy } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
 const SCHEDULE_TYPES = ['ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
-const QUESTION_TYPES = ['TEXT', 'MCQ', 'SCALE'];
+const QUESTION_TYPES = ['TEXT'];
 
 function emptyQuestion() {
   return { text: '', type: 'TEXT' };

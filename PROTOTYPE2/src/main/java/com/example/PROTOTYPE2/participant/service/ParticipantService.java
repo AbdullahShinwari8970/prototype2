@@ -29,17 +29,20 @@ public class ParticipantService {
     private final EnrollmentRepository  enrollmentRepository;
     private final SurveyRepository      surveyRepository;
     private final QuestionRepository    questionRepository;
+    private final EmailService          emailService;
 
     public ParticipantService(SurveyTokenRepository surveyTokenRepository,
                               ResponseRepository responseRepository,
                               EnrollmentRepository enrollmentRepository,
                               SurveyRepository surveyRepository,
-                              QuestionRepository questionRepository) {
+                              QuestionRepository questionRepository,
+                              EmailService emailService) {
         this.surveyTokenRepository = surveyTokenRepository;
         this.responseRepository    = responseRepository;
         this.enrollmentRepository  = enrollmentRepository;
         this.surveyRepository      = surveyRepository;
         this.questionRepository    = questionRepository;
+        this.emailService          = emailService;
     }
 
     /**
@@ -105,7 +108,17 @@ public class ParticipantService {
             case ONE_TIME -> LocalDateTime.now().plusDays(7);
         };
 
-        return surveyTokenRepository.save(new SurveyToken(enrollment, survey, expiresAt));
+        SurveyToken savedToken = surveyTokenRepository.save(new SurveyToken(enrollment, survey, expiresAt));
+
+        // Send email to participant with the survey link
+        emailService.sendSurveyLink(
+                enrollment.getParticipant().getEmail(),
+                enrollment.getParticipant().getName(),
+                savedToken.getToken(),
+                survey.getName()
+        );
+
+        return savedToken;
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

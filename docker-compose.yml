@@ -26,7 +26,10 @@ services:
       PGUSER: admin
       PGPASSWORD: password
       JWT_SECRET: thisIsMysecregtfrdesww233eggtffeeddgkjjhhtdhttebd54ndhdhfhhhshs8877465sbbdd
-      CORS_ORIGINS: http://localhost:3000 # allowed frontend origin
+      CORS_ORIGINS: http://localhost:3000
+      MAIL_USERNAME: finalyearproject661@gmail.com
+      MAIL_PASSWORD: ysnxybailfqxutry
+      FRONTEND_URL: http://localhost:3000
     depends_on:
       - db
 
