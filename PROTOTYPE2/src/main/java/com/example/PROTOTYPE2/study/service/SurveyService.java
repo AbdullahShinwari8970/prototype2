@@ -2,8 +2,10 @@ package com.example.PROTOTYPE2.study.service;
 
 import com.example.PROTOTYPE2.study.dto.SurveyRequest;
 import com.example.PROTOTYPE2.study.dto.SurveyResponse;
+import com.example.PROTOTYPE2.study.entity.Question;
 import com.example.PROTOTYPE2.study.entity.Study;
 import com.example.PROTOTYPE2.study.entity.Survey;
+import com.example.PROTOTYPE2.study.repository.QuestionRepository;
 import com.example.PROTOTYPE2.study.repository.SurveyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,18 +16,31 @@ import java.util.List;
 public class SurveyService {
 
     private final SurveyRepository surveyRepository;
+    private final QuestionRepository questionRepository;
     private final StudyService studyService;
 
-    public SurveyService(SurveyRepository surveyRepository, StudyService studyService) {
+    public SurveyService(SurveyRepository surveyRepository,
+                         QuestionRepository questionRepository,
+                         StudyService studyService) {
         this.surveyRepository = surveyRepository;
+        this.questionRepository = questionRepository;
         this.studyService = studyService;
     }
 
     @Transactional
     public SurveyResponse create(Long studyId, SurveyRequest request) {
         Study study = studyService.findOrThrow(studyId);
-        Survey survey = new Survey(request.getName(), request.getScheduleType(), study);
-        return SurveyResponse.from(surveyRepository.save(survey));
+        Survey survey = surveyRepository.save(new Survey(request.getName(), request.getScheduleType(), study));
+
+        // Save questions if provided (used by the "add survey with questions" endpoint)
+        if (request.getQuestions() != null && !request.getQuestions().isEmpty()) {
+            request.getQuestions().forEach(q ->
+                questionRepository.save(new Question(q.getText(), q.getType(), survey))
+            );
+        }
+
+        // Reload so questions are included in response
+        return SurveyResponse.from(surveyRepository.findById(survey.getId()).orElseThrow());
     }
 
     @Transactional(readOnly = true)

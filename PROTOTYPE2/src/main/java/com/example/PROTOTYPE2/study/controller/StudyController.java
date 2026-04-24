@@ -92,4 +92,15 @@ public class StudyController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @Operation(summary = "Withdraw a participant from a study")
+    @DeleteMapping("/api/studies/{studyId}/participants/{enrollmentId}")
+    public ResponseEntity<?> withdrawParticipant(@PathVariable Long studyId,
+                                                  @PathVariable Long enrollmentId) {
+        try {
+            return ResponseEntity.ok(enrollmentService.withdraw(studyId, enrollmentId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

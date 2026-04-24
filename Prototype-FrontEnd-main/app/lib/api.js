@@ -72,3 +72,24 @@ export async function enrollParticipant(studyId, name, email) {
   if (!res.ok) throw new Error(data.error || "Failed to enroll participant");
   return data;
 }
+
+export async function withdrawParticipant(studyId, enrollmentId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/participants/${enrollmentId}`, {
+    method: "DELETE",
+    headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to withdraw participant");
+  return data;
+}
+
+export async function addSurveyWithQuestions(studyId, surveyData) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/surveys`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(surveyData)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to add survey");
+  return data;
+}

@@ -52,4 +52,21 @@ public class EnrollmentService {
                 .map(EnrollmentResponse::from)
                 .toList();
     }
+
+    @Transactional
+    public EnrollmentResponse withdraw(Long studyId, Long enrollmentId) {
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Enrollment not found: " + enrollmentId));
+
+        if (!enrollment.getStudy().getId().equals(studyId)) {
+            throw new IllegalArgumentException("Enrollment does not belong to this study");
+        }
+
+        if ("WITHDRAWN".equals(enrollment.getStatus())) {
+            throw new IllegalArgumentException("Participant is already withdrawn");
+        }
+
+        enrollment.setStatus("WITHDRAWN");
+        return EnrollmentResponse.from(enrollmentRepository.save(enrollment));
+    }
 }
