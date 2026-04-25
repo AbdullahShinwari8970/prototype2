@@ -3,11 +3,19 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { isAuthenticated } from '../../lib/auth';
-import { getStudyById, getSurveyById, getParticipants, enrollParticipant, withdrawParticipant, addSurveyWithQuestions } from '../../lib/api';
+import { getStudyById, getSurveyById, getParticipants, enrollParticipant, withdrawParticipant, addSurveyWithQuestions, deployStudy, pauseStudy, resumeStudy, revertStudy, closeStudy } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
-const SCHEDULE_TYPES = ['ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
+const SCHEDULE_TYPES = ['INSTANT', 'ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
+const RECURRING = ['DAILY', 'WEEKLY', 'MONTHLY'];
 const QUESTION_TYPES = ['TEXT'];
+
+function formatHour(h) {
+  if (h === 0)  return '12:00 AM';
+  if (h < 12)  return `${h}:00 AM`;
+  if (h === 12) return '12:00 PM';
+  return `${h - 12}:00 PM`;
+}
 
 function emptyQuestion() { return { text: '', type: 'TEXT' }; }
 
@@ -21,6 +29,9 @@ export default function StudyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Status actions
+  const [statusLoading, setStatusLoading] = useState(false);
+
   // Enroll form
   const [enrollName, setEnrollName] = useState('');
   const [enrollEmail, setEnrollEmail] = useState('');
@@ -32,6 +43,7 @@ export default function StudyDetailPage() {
   const [showSurveyForm, setShowSurveyForm] = useState(false);
   const [surveyName, setSurveyName] = useState('');
   const [surveySchedule, setSurveySchedule] = useState('ONE_TIME');
+  const [surveySendHour, setSurveySendHour] = useState(9);
   const [surveyQuestions, setSurveyQuestions] = useState([emptyQuestion()]);
   const [surveyLoading, setSurveyLoading] = useState(false);
   const [surveyError, setSurveyError] = useState('');
@@ -56,6 +68,22 @@ export default function StudyDetailPage() {
     }
   }
 
+  // ── Status actions ───────────────────────────────────────────────────────
+
+  async function handleStatusAction(action, confirmMsg) {
+    if (confirmMsg && !confirm(confirmMsg)) return;
+    setStatusLoading(true);
+    try {
+      const fn = { deploy: deployStudy, pause: pauseStudy, resume: resumeStudy, revert: revertStudy, close: closeStudy }[action];
+      const updated = await fn(id);
+      setStudy(updated);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setStatusLoading(false);
+    }
+  }
+
   // ── Enroll ───────────────────────────────────────────────────────────────
 
   async function handleEnroll(e) {
@@ -63,7 +91,7 @@ export default function StudyDetailPage() {
     setEnrollError(''); setEnrollSuccess(''); setEnrollLoading(true);
     try {
       await enrollParticipant(id, enrollName, enrollEmail);
-      setEnrollSuccess(`${enrollName} enrolled successfully.`);
+      setEnrollSuccess(`${enrollName} enrolled successfully.${isActive ? ' Survey link sent.' : ''}`);
       setEnrollName(''); setEnrollEmail('');
       setParticipants(await getParticipants(id));
     } catch (err) {
@@ -100,10 +128,10 @@ export default function StudyDetailPage() {
       await addSurveyWithQuestions(id, {
         name: surveyName,
         scheduleType: surveySchedule,
+        sendHour: RECURRING.includes(surveySchedule) ? surveySendHour : null,
         questions: surveyQuestions
       });
-      // Reset form and reload surveys
-      setSurveyName(''); setSurveySchedule('ONE_TIME'); setSurveyQuestions([emptyQuestion()]);
+      setSurveyName(''); setSurveySchedule('ONE_TIME'); setSurveySendHour(9); setSurveyQuestions([emptyQuestion()]);
       setShowSurveyForm(false);
       const studyData = await getStudyById(id);
       const surveyDetails = await Promise.all(studyData.surveys.map(s => getSurveyById(s.id)));
@@ -116,11 +144,25 @@ export default function StudyDetailPage() {
   }
 
   const scheduleColour = {
+    INSTANT:  'text-rose-300 bg-rose-400/10',
     ONE_TIME: 'text-blue-300 bg-blue-400/10',
     DAILY:    'text-green-300 bg-green-400/10',
     WEEKLY:   'text-purple-300 bg-purple-400/10',
     MONTHLY:  'text-yellow-300 bg-yellow-400/10',
   };
+
+  const status = study?.status ?? 'DRAFT';
+  const isActive = status === 'ACTIVE';
+  const isPaused = status === 'PAUSED';
+  const isClosed = status === 'CLOSED';
+  const isDraft  = status === 'DRAFT';
+
+  const statusConfig = {
+    DRAFT:  { label: 'Draft',  dot: 'bg-zinc-400',   text: 'text-zinc-400',  ring: 'ring-zinc-400/20',  bg: 'bg-zinc-400/10' },
+    ACTIVE: { label: 'Live',   dot: 'bg-green-400',  text: 'text-green-300', ring: 'ring-green-400/20', bg: 'bg-green-400/10' },
+    PAUSED: { label: 'Paused', dot: 'bg-yellow-400', text: 'text-yellow-300',ring: 'ring-yellow-400/20',bg: 'bg-yellow-400/10' },
+    CLOSED: { label: 'Closed', dot: 'bg-rose-500',   text: 'text-rose-400',  ring: 'ring-rose-400/20',  bg: 'bg-rose-400/10' },
+  }[status] ?? {};
 
   if (loading) return (
     <div className="min-h-screen bg-rose-950 flex items-center justify-center">
@@ -151,11 +193,112 @@ export default function StudyDetailPage() {
           <button onClick={() => router.push('/')} className="text-xs text-rose-400 hover:text-rose-200 mb-3 transition-colors">
             ← Back to studies
           </button>
-          <h1 className="text-3xl font-bold text-white">{study?.name}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-white">{study?.name}</h1>
+            <span className={`inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-3 py-1 ring-1 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.ring}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+              {statusConfig.label}
+            </span>
+          </div>
           <p className="mt-1 text-rose-300 text-sm">
             {surveys.length} survey{surveys.length !== 1 ? 's' : ''} · {participants.length} participant{participants.length !== 1 ? 's' : ''}
           </p>
         </div>
+
+        {/* Status action bar */}
+        {!isClosed && (
+          <div className="rounded-2xl border border-rose-800/40 bg-white/5 p-5">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-sm font-medium text-white">
+                  {isDraft  && 'Ready to launch?'}
+                  {isActive && 'Study is live'}
+                  {isPaused && 'Study is paused'}
+                </p>
+                <p className="text-xs text-rose-400 mt-0.5">
+                  {isDraft  && 'Deploy when you have enrolled your participants. Survey links will be sent immediately.'}
+                  {isActive && 'Survey links are being sent on schedule. You can pause or close the study at any time.'}
+                  {isPaused && 'Token sending is suspended. Resume to continue the study or revert to draft to reconfigure.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {statusLoading && (
+                  <svg className="animate-spin h-4 w-4 text-rose-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+
+                {/* DRAFT — Deploy */}
+                {isDraft && (
+                  <button
+                    onClick={() => handleStatusAction('deploy', `Deploy "${study.name}"?\n\nSurvey links will be sent to all ${participants.filter(p => p.status === 'ACTIVE').length} enrolled participant(s) immediately.`)}
+                    disabled={statusLoading || participants.filter(p => p.status === 'ACTIVE').length === 0}
+                    title={participants.filter(p => p.status === 'ACTIVE').length === 0 ? 'Enrol at least one participant before deploying' : ''}
+                    className="rounded-xl bg-rose-600 hover:bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Deploy Study
+                  </button>
+                )}
+
+                {/* ACTIVE — Pause + Close */}
+                {isActive && (
+                  <>
+                    <button
+                      onClick={() => handleStatusAction('pause')}
+                      disabled={statusLoading}
+                      className="rounded-xl bg-white/5 ring-1 ring-inset ring-rose-300/20 hover:bg-white/10 px-4 py-2.5 text-sm font-medium text-rose-200 transition-all disabled:opacity-40"
+                    >
+                      Pause
+                    </button>
+                    <button
+                      onClick={() => handleStatusAction('close', `Close "${study.name}" permanently?\n\nNo more survey links will be sent.`)}
+                      disabled={statusLoading}
+                      className="rounded-xl bg-white/5 ring-1 ring-inset ring-rose-500/30 hover:bg-rose-500/10 px-4 py-2.5 text-sm font-medium text-rose-400 transition-all disabled:opacity-40"
+                    >
+                      Close Study
+                    </button>
+                  </>
+                )}
+
+                {/* PAUSED — Resume + Revert + Close */}
+                {isPaused && (
+                  <>
+                    <button
+                      onClick={() => handleStatusAction('resume')}
+                      disabled={statusLoading}
+                      className="rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-40"
+                    >
+                      Resume
+                    </button>
+                    <button
+                      onClick={() => handleStatusAction('revert', 'Revert to draft? The study will stop sending tokens.')}
+                      disabled={statusLoading}
+                      className="rounded-xl bg-white/5 ring-1 ring-inset ring-rose-300/20 hover:bg-white/10 px-4 py-2.5 text-sm font-medium text-rose-200 transition-all disabled:opacity-40"
+                    >
+                      Revert to Draft
+                    </button>
+                    <button
+                      onClick={() => handleStatusAction('close', `Close "${study.name}" permanently?`)}
+                      disabled={statusLoading}
+                      className="rounded-xl bg-white/5 ring-1 ring-inset ring-rose-500/30 hover:bg-rose-500/10 px-4 py-2.5 text-sm font-medium text-rose-400 transition-all disabled:opacity-40"
+                    >
+                      Close Study
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Closed banner */}
+        {isClosed && (
+          <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">
+            This study is closed. No further survey links will be sent.
+          </div>
+        )}
 
         {/* Surveys */}
         <section>
@@ -186,7 +329,7 @@ export default function StudyDetailPage() {
 
               <div>
                 <label className="block text-xs font-medium text-rose-300 mb-2">Schedule</label>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap mb-3">
                   {SCHEDULE_TYPES.map(type => (
                     <button key={type} type="button" onClick={() => setSurveySchedule(type)}
                       className={`rounded-xl px-4 py-2 text-xs font-medium ring-1 transition-all ${
@@ -196,6 +339,20 @@ export default function StudyDetailPage() {
                     </button>
                   ))}
                 </div>
+                {RECURRING.includes(surveySchedule) && (
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-medium text-rose-300">Send time</label>
+                    <select
+                      value={surveySendHour}
+                      onChange={e => setSurveySendHour(parseInt(e.target.value))}
+                      className="rounded-xl border-0 py-2 px-3 bg-rose-900/50 text-rose-200 ring-1 ring-inset ring-rose-300/20 focus:ring-2 focus:ring-rose-400 outline-none sm:text-sm"
+                    >
+                      {Array.from({ length: 24 }, (_, h) => (
+                        <option key={h} value={h}>{formatHour(h)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -266,7 +423,13 @@ export default function StudyDetailPage() {
 
         {/* Enroll Participant */}
         <section className="rounded-2xl border border-rose-800/40 bg-white/5 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Enroll a Participant</h2>
+          <h2 className="text-lg font-semibold text-white mb-1">Enroll a Participant</h2>
+          {isActive && (
+            <p className="text-xs text-green-300 mb-4">Study is live — survey links will be sent immediately on enrolment.</p>
+          )}
+          {!isActive && (
+            <p className="text-xs text-rose-400 mb-4">Study is in draft — participants won't receive anything until you deploy.</p>
+          )}
           <form onSubmit={handleEnroll} className="flex gap-3 flex-wrap items-end">
             <div className="flex-1 min-w-40">
               <label className="block text-xs font-medium text-rose-300 mb-1">Name</label>

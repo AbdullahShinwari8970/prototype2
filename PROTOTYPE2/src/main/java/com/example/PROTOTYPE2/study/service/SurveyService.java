@@ -30,7 +30,9 @@ public class SurveyService {
     @Transactional
     public SurveyResponse create(Long studyId, SurveyRequest request) {
         Study study = studyService.findOrThrow(studyId);
-        Survey survey = surveyRepository.save(new Survey(request.getName(), request.getScheduleType(), study));
+        Survey survey = new Survey(request.getName(), request.getScheduleType(), study);
+        survey.setSendHour(request.getSendHour());
+        surveyRepository.save(survey);
 
         // Save questions if provided (used by the "add survey with questions" endpoint)
         if (request.getQuestions() != null && !request.getQuestions().isEmpty()) {

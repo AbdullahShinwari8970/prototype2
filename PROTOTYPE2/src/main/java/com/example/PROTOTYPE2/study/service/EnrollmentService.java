@@ -1,9 +1,11 @@
 package com.example.PROTOTYPE2.study.service;
 
+import com.example.PROTOTYPE2.participant.scheduler.TokenScheduler;
 import com.example.PROTOTYPE2.study.dto.EnrollmentRequest;
 import com.example.PROTOTYPE2.study.dto.EnrollmentResponse;
 import com.example.PROTOTYPE2.study.entity.Enrollment;
 import com.example.PROTOTYPE2.study.entity.Participant;
+import com.example.PROTOTYPE2.study.entity.ScheduleType;
 import com.example.PROTOTYPE2.study.entity.Study;
 import com.example.PROTOTYPE2.study.repository.EnrollmentRepository;
 import com.example.PROTOTYPE2.study.repository.ParticipantRepository;
@@ -18,13 +20,16 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final ParticipantRepository participantRepository;
     private final StudyService studyService;
+    private final TokenScheduler tokenScheduler;
 
     public EnrollmentService(EnrollmentRepository enrollmentRepository,
                              ParticipantRepository participantRepository,
-                             StudyService studyService) {
-        this.enrollmentRepository = enrollmentRepository;
+                             StudyService studyService,
+                             TokenScheduler tokenScheduler) {
+        this.enrollmentRepository  = enrollmentRepository;
         this.participantRepository = participantRepository;
-        this.studyService = studyService;
+        this.studyService          = studyService;
+        this.tokenScheduler        = tokenScheduler;
     }
 
     @Transactional
@@ -41,8 +46,18 @@ public class EnrollmentService {
             throw new IllegalArgumentException("Participant is already enrolled in this study");
         }
 
-        Enrollment enrollment = new Enrollment(study, participant);
-        return EnrollmentResponse.from(enrollmentRepository.save(enrollment));
+        Enrollment enrollment = enrollmentRepository.save(new Enrollment(study, participant));
+
+        // If study is already live, send INSTANT/ONE_TIME tokens immediately.
+        // DAILY/WEEKLY/MONTHLY are picked up by the scheduler on their next run.
+        if ("ACTIVE".equals(study.getStatus())) {
+            study.getSurveys().stream()
+                    .filter(s -> s.getScheduleType() == ScheduleType.INSTANT ||
+                                 s.getScheduleType() == ScheduleType.ONE_TIME)
+                    .forEach(s -> tokenScheduler.createAndSendToken(enrollment, s));
+        }
+
+        return EnrollmentResponse.from(enrollment);
     }
 
     @Transactional(readOnly = true)

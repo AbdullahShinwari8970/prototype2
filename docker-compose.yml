@@ -6,30 +6,30 @@ services:
     environment:
       POSTGRES_DB: prototype2
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
   app:
-    build: #instead of pulling a pre-built image, build one
-      context: ./PROTOTYPE2 #the folder in which the docker file resides.
+    build:
+      context: ./PROTOTYPE2
       dockerfile: Dockerfile
     container_name: prototype2-app
     ports:
       - "8080:8080"
     environment:
-      PGHOST: db # tells Spring Boot the database host is the "db" container
+      PGHOST: db
       PGPORT: 5432
       PGDATABASE: prototype2
       PGUSER: admin
-      PGPASSWORD: password
-      JWT_SECRET: thisIsMysecregtfrdesww233eggtffeeddgkjjhhtdhttebd54ndhdhfhhhshs8877465sbbdd
-      CORS_ORIGINS: http://localhost:3000
-      MAIL_USERNAME: finalyearproject661@gmail.com
-      MAIL_PASSWORD: ysnxybailfqxutry
-      FRONTEND_URL: http://localhost:3000
+      PGPASSWORD: ${PGPASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      FRONTEND_URL: ${FRONTEND_URL}
     depends_on:
       - db
 

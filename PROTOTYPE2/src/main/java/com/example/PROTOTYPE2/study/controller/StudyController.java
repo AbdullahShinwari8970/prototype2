@@ -103,4 +103,54 @@ public class StudyController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @Operation(summary = "Deploy a study — flips status to ACTIVE and sends first tokens to all enrolled participants")
+    @PostMapping("/api/studies/{studyId}/deploy")
+    public ResponseEntity<?> deployStudy(@PathVariable Long studyId) {
+        try {
+            return ResponseEntity.ok(studyService.deploy(studyId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Pause a study — stops token sending until resumed")
+    @PostMapping("/api/studies/{studyId}/pause")
+    public ResponseEntity<?> pauseStudy(@PathVariable Long studyId) {
+        try {
+            return ResponseEntity.ok(studyService.pause(studyId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Resume a paused study")
+    @PostMapping("/api/studies/{studyId}/resume")
+    public ResponseEntity<?> resumeStudy(@PathVariable Long studyId) {
+        try {
+            return ResponseEntity.ok(studyService.resume(studyId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Revert a deployed study back to DRAFT")
+    @PostMapping("/api/studies/{studyId}/revert")
+    public ResponseEntity<?> revertStudy(@PathVariable Long studyId) {
+        try {
+            return ResponseEntity.ok(studyService.revert(studyId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Close a study permanently")
+    @PostMapping("/api/studies/{studyId}/close")
+    public ResponseEntity<?> closeStudy(@PathVariable Long studyId) {
+        try {
+            return ResponseEntity.ok(studyService.close(studyId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

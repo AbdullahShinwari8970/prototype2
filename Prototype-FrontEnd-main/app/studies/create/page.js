@@ -6,15 +6,32 @@ import { isAuthenticated, getUser } from '../../lib/auth';
 import { createFullStudy } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
-const SCHEDULE_TYPES = ['ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
+const SCHEDULE_TYPES = ['INSTANT', 'ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
+
+const SCHEDULE_LABELS = {
+  INSTANT:  'Instant — send survey link as soon as participant is enrolled',
+  ONE_TIME: 'One-time — send once, expires after 7 days',
+  DAILY:    'Daily — new link every 24 hours',
+  WEEKLY:   'Weekly — new link every 7 days',
+  MONTHLY:  'Monthly — new link every 30 days',
+};
+
+const RECURRING = ['DAILY', 'WEEKLY', 'MONTHLY'];
 const QUESTION_TYPES = ['TEXT'];
+
+function formatHour(h) {
+  if (h === 0)  return '12:00 AM';
+  if (h < 12)  return `${h}:00 AM`;
+  if (h === 12) return '12:00 PM';
+  return `${h - 12}:00 PM`;
+}
 
 function emptyQuestion() {
   return { text: '', type: 'TEXT' };
 }
 
 function emptySurvey() {
-  return { name: '', scheduleType: 'ONE_TIME', questions: [emptyQuestion()] };
+  return { name: '', scheduleType: 'ONE_TIME', sendHour: 9, questions: [emptyQuestion()] };
 }
 
 export default function CreateStudyPage() {
@@ -80,6 +97,7 @@ export default function CreateStudyPage() {
         surveys: surveys.map(s => ({
           name: s.name,
           scheduleType: s.scheduleType,
+          sendHour: RECURRING.includes(s.scheduleType) ? s.sendHour : null,
           questions: s.questions.map(q => ({
             text: q.text,
             type: q.type
@@ -157,7 +175,7 @@ export default function CreateStudyPage() {
               {/* Schedule Type */}
               <div>
                 <label className="block text-sm font-medium text-rose-200 mb-2">Schedule</label>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap mb-2">
                   {SCHEDULE_TYPES.map(type => (
                     <button
                       key={type}
@@ -173,6 +191,23 @@ export default function CreateStudyPage() {
                     </button>
                   ))}
                 </div>
+                <p className="text-xs text-rose-400/70 italic mb-3">
+                  {SCHEDULE_LABELS[survey.scheduleType]}
+                </p>
+                {RECURRING.includes(survey.scheduleType) && (
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-medium text-rose-300">Send time</label>
+                    <select
+                      value={survey.sendHour}
+                      onChange={e => updateSurvey(si, 'sendHour', parseInt(e.target.value))}
+                      className="rounded-xl border-0 py-2 px-3 bg-rose-900/50 text-rose-200 ring-1 ring-inset ring-rose-300/20 focus:ring-2 focus:ring-rose-400 outline-none sm:text-sm"
+                    >
+                      {Array.from({ length: 24 }, (_, h) => (
+                        <option key={h} value={h}>{formatHour(h)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               {/* Questions */}

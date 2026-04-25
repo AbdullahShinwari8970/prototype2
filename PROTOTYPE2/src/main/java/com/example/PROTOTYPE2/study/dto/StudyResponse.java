@@ -9,6 +9,7 @@ public class StudyResponse {
     private Long id;
     private String name;
     private Long researcherId;
+    private String status;
     private List<SurveySummary> surveys;
 
     private StudyResponse() {}
@@ -18,6 +19,7 @@ public class StudyResponse {
         res.id           = study.getId();
         res.name         = study.getName();
         res.researcherId = study.getResearcherId();
+        res.status       = study.getStatus() != null ? study.getStatus() : "DRAFT";
         res.surveys      = study.getSurveys().stream()
                                 .map(s -> new SurveySummary(s.getId(), s.getName(), s.getScheduleType().name()))
                                 .toList();
@@ -27,6 +29,7 @@ public class StudyResponse {
     public Long getId()                     { return id; }
     public String getName()                 { return name; }
     public Long getResearcherId()           { return researcherId; }
+    public String getStatus()               { return status; }
     public List<SurveySummary> getSurveys() { return surveys; }
 
     public record SurveySummary(Long id, String name, String scheduleType) {}

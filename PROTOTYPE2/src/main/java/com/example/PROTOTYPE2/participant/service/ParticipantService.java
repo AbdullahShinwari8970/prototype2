@@ -102,10 +102,10 @@ public class ParticipantService {
 
         // Expiry based on schedule type
         LocalDateTime expiresAt = switch (survey.getScheduleType()) {
-            case DAILY   -> LocalDateTime.now().plusDays(1);
-            case WEEKLY  -> LocalDateTime.now().plusDays(7);
-            case MONTHLY -> LocalDateTime.now().plusDays(30);
-            case ONE_TIME -> LocalDateTime.now().plusDays(7);
+            case INSTANT, ONE_TIME -> LocalDateTime.now().plusDays(7);
+            case DAILY             -> LocalDateTime.now().plusDays(1);
+            case WEEKLY            -> LocalDateTime.now().plusDays(7);
+            case MONTHLY           -> LocalDateTime.now().plusDays(30);
         };
 
         SurveyToken savedToken = surveyTokenRepository.save(new SurveyToken(enrollment, survey, expiresAt));
@@ -120,8 +120,6 @@ public class ParticipantService {
 
         return savedToken;
     }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
 
     private SurveyToken findValidToken(String token) {
         SurveyToken surveyToken = surveyTokenRepository.findByToken(token)

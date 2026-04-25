@@ -83,6 +83,51 @@ export async function withdrawParticipant(studyId, enrollmentId) {
   return data;
 }
 
+export async function deployStudy(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/deploy`, {
+    method: "POST", headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to deploy study");
+  return data;
+}
+
+export async function pauseStudy(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/pause`, {
+    method: "POST", headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to pause study");
+  return data;
+}
+
+export async function resumeStudy(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/resume`, {
+    method: "POST", headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to resume study");
+  return data;
+}
+
+export async function revertStudy(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/revert`, {
+    method: "POST", headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to revert study");
+  return data;
+}
+
+export async function closeStudy(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/close`, {
+    method: "POST", headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to close study");
+  return data;
+}
+
 export async function addSurveyWithQuestions(studyId, surveyData) {
   const res = await fetch(`${API_BASE}/api/studies/${studyId}/surveys`, {
     method: "POST",
