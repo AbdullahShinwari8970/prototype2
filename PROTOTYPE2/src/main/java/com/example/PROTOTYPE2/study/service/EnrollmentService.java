@@ -48,12 +48,11 @@ public class EnrollmentService {
 
         Enrollment enrollment = enrollmentRepository.save(new Enrollment(study, participant));
 
-        // If study is already live, send INSTANT/ONE_TIME tokens immediately.
+        // If study is already live, send ONE_TIME tokens immediately.
         // DAILY/WEEKLY/MONTHLY are picked up by the scheduler on their next run.
         if ("ACTIVE".equals(study.getStatus())) {
             study.getSurveys().stream()
-                    .filter(s -> s.getScheduleType() == ScheduleType.INSTANT ||
-                                 s.getScheduleType() == ScheduleType.ONE_TIME)
+                    .filter(s -> s.getScheduleType() == ScheduleType.ONE_TIME)
                     .forEach(s -> tokenScheduler.createAndSendToken(enrollment, s));
         }
 

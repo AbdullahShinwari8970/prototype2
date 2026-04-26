@@ -6,11 +6,10 @@ import { isAuthenticated, getUser } from '../../lib/auth';
 import { createFullStudy } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
-const SCHEDULE_TYPES = ['INSTANT', 'ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
+const SCHEDULE_TYPES = ['ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
 
 const SCHEDULE_LABELS = {
-  INSTANT:  'Instant — send survey link as soon as participant is enrolled',
-  ONE_TIME: 'One-time — send once, expires after 7 days',
+  ONE_TIME: 'One-time — send once on deploy, expires after 7 days',
   DAILY:    'Daily — new link every 24 hours',
   WEEKLY:   'Weekly — new link every 7 days',
   MONTHLY:  'Monthly — new link every 30 days',

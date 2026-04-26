@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { isAuthenticated } from '../../lib/auth';
-import { getStudyById, getSurveyById, getParticipants, enrollParticipant, withdrawParticipant, addSurveyWithQuestions, deployStudy, pauseStudy, resumeStudy, revertStudy, closeStudy } from '../../lib/api';
+import { getStudyById, getSurveyById, getParticipants, enrollParticipant, withdrawParticipant, addSurveyWithQuestions, deployStudy, pauseStudy, resumeStudy, revertStudy, closeStudy, exportStudyCsv, exportStudyJson, getCompliance } from '../../lib/api';
 import NavBar from '../../components/NavBar';
 
-const SCHEDULE_TYPES = ['INSTANT', 'ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
+const SCHEDULE_TYPES = ['ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY'];
 const RECURRING = ['DAILY', 'WEEKLY', 'MONTHLY'];
 const QUESTION_TYPES = ['TEXT'];
 
@@ -39,6 +39,9 @@ export default function StudyDetailPage() {
   const [enrollError, setEnrollError] = useState('');
   const [enrollSuccess, setEnrollSuccess] = useState('');
 
+  // Compliance
+  const [compliance, setCompliance] = useState([]);
+
   // Add survey form
   const [showSurveyForm, setShowSurveyForm] = useState(false);
   const [surveyName, setSurveyName] = useState('');
@@ -61,6 +64,7 @@ export default function StudyDetailPage() {
       const surveyDetails = await Promise.all(studyData.surveys.map(s => getSurveyById(s.id)));
       setSurveys(surveyDetails);
       setParticipants(await getParticipants(id));
+      try { setCompliance(await getCompliance(id)); } catch (_) {}
     } catch (err) {
       setError(err.message);
     } finally {
@@ -140,6 +144,35 @@ export default function StudyDetailPage() {
       setSurveyError(err.message);
     } finally {
       setSurveyLoading(false);
+    }
+  }
+
+  async function handleExportCsv() {
+    try {
+      const blob = await exportStudyCsv(id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `study-${id}-export.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  async function handleExportJson() {
+    try {
+      const data = await exportStudyJson(id);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `study-${id}-export.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message);
     }
   }
 
@@ -299,6 +332,63 @@ export default function StudyDetailPage() {
             This study is closed. No further survey links will be sent.
           </div>
         )}
+
+        {/* Export */}
+        <section className="rounded-2xl border border-rose-800/40 bg-white/5 p-5">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Export Data</h2>
+              <p className="text-xs text-rose-400 mt-0.5">Download all collected responses for this study.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportCsv}
+                className="rounded-xl bg-white/5 ring-1 ring-inset ring-rose-300/20 hover:bg-white/10 px-4 py-2 text-sm font-medium text-rose-200 transition-all"
+              >
+                Download CSV
+              </button>
+              <button
+                onClick={handleExportJson}
+                className="rounded-xl bg-white/5 ring-1 ring-inset ring-rose-300/20 hover:bg-white/10 px-4 py-2 text-sm font-medium text-rose-200 transition-all"
+              >
+                Download JSON
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Compliance */}
+        <section className="rounded-2xl border border-rose-800/40 bg-white/5 p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Compliance Overview</h2>
+          {compliance.length === 0 ? (
+            <p className="text-xs text-rose-400">No responses yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-rose-400 border-b border-rose-800/40">
+                    <th className="pb-2 pr-4 font-medium">Participant</th>
+                    <th className="pb-2 pr-4 font-medium">Survey</th>
+                    <th className="pb-2 pr-4 font-medium text-right">Sent</th>
+                    <th className="pb-2 pr-4 font-medium text-right">Completed</th>
+                    <th className="pb-2 font-medium text-right">Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compliance.map((row, i) => (
+                    <tr key={i} className="border-b border-rose-800/20 last:border-0">
+                      <td className="py-2 pr-4 text-rose-100">{row.participantName}</td>
+                      <td className="py-2 pr-4 text-rose-300">{row.surveyName}</td>
+                      <td className="py-2 pr-4 text-rose-300 text-right">{row.sent}</td>
+                      <td className="py-2 pr-4 text-rose-300 text-right">{row.completed}</td>
+                      <td className="py-2 text-right text-rose-100 font-medium">{row.completionRate}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
 
         {/* Surveys */}
         <section>

@@ -57,8 +57,8 @@ public class TokenScheduler {
             for (Survey survey : enrollment.getStudy().getSurveys()) {
                 ScheduleType type = survey.getScheduleType();
 
-                // INSTANT / ONE_TIME are handled at deploy/enrol time — skip recurring check
-                if (type == ScheduleType.INSTANT || type == ScheduleType.ONE_TIME) continue;
+                // ONE_TIME is handled at deploy/enrol time — skip recurring check
+                if (type == ScheduleType.ONE_TIME) continue;
 
                 if (isDue(enrollment, survey, type)) {
                     createAndSendToken(enrollment, survey);
@@ -79,7 +79,7 @@ public class TokenScheduler {
     @Transactional
     public void createAndSendToken(Enrollment enrollment, Survey survey) {
         LocalDateTime expiresAt = switch (survey.getScheduleType()) {
-            case INSTANT, ONE_TIME -> LocalDateTime.now().plusDays(7);
+            case ONE_TIME -> LocalDateTime.now().plusDays(7);
             case DAILY             -> LocalDateTime.now().plusDays(1);
             case WEEKLY            -> LocalDateTime.now().plusDays(7);
             case MONTHLY           -> LocalDateTime.now().plusDays(30);

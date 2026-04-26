@@ -1,7 +1,9 @@
 package com.example.PROTOTYPE2.study.controller;
 
 import com.example.PROTOTYPE2.shared.security.ResearcherDetailsImpl;
+import com.example.PROTOTYPE2.study.dto.ComplianceRowDto;
 import com.example.PROTOTYPE2.study.dto.EnrollmentRequest;
+import com.example.PROTOTYPE2.study.dto.ExportRowDto;
 import com.example.PROTOTYPE2.study.dto.StudyFullRequest;
 import com.example.PROTOTYPE2.study.dto.StudyRequest;
 import com.example.PROTOTYPE2.study.dto.StudyResponse;
@@ -10,7 +12,9 @@ import com.example.PROTOTYPE2.study.service.StudyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -151,6 +155,46 @@ public class StudyController {
             return ResponseEntity.ok(studyService.close(studyId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Get compliance overview — tokens sent vs completed per participant per survey")
+    @GetMapping("/api/studies/{studyId}/compliance")
+    public ResponseEntity<?> getCompliance(@PathVariable Long studyId,
+                                           @AuthenticationPrincipal ResearcherDetailsImpl principal) {
+        try {
+            List<ComplianceRowDto> rows = studyService.getCompliance(studyId, principal.getId().longValue());
+            return ResponseEntity.ok(rows);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Export study responses as CSV")
+    @GetMapping("/api/studies/{studyId}/export/csv")
+    public ResponseEntity<?> exportCsv(@PathVariable Long studyId,
+                                       @AuthenticationPrincipal ResearcherDetailsImpl principal) {
+        try {
+            String csv = studyService.exportAsCsv(studyId, principal.getId().longValue());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"study-" + studyId + "-export.csv\"")
+                    .contentType(MediaType.parseMediaType("text/csv"))
+                    .body(csv);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Export study responses as JSON")
+    @GetMapping("/api/studies/{studyId}/export/json")
+    public ResponseEntity<?> exportJson(@PathVariable Long studyId,
+                                        @AuthenticationPrincipal ResearcherDetailsImpl principal) {
+        try {
+            List<ExportRowDto> rows = studyService.getExportRows(studyId, principal.getId().longValue());
+            return ResponseEntity.ok(rows);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
         }
     }
 }

@@ -138,3 +138,32 @@ export async function addSurveyWithQuestions(studyId, surveyData) {
   if (!res.ok) throw new Error(data.error || "Failed to add survey");
   return data;
 }
+
+export async function getCompliance(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/compliance`, {
+    headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to fetch compliance");
+  return data;
+}
+
+export async function exportStudyCsv(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/export/csv`, {
+    headers: authHeaders()
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to export CSV");
+  }
+  return res.blob();
+}
+
+export async function exportStudyJson(studyId) {
+  const res = await fetch(`${API_BASE}/api/studies/${studyId}/export/json`, {
+    headers: authHeaders()
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to export JSON");
+  return data;
+}

@@ -102,7 +102,7 @@ public class ParticipantService {
 
         // Expiry based on schedule type
         LocalDateTime expiresAt = switch (survey.getScheduleType()) {
-            case INSTANT, ONE_TIME -> LocalDateTime.now().plusDays(7);
+            case ONE_TIME -> LocalDateTime.now().plusDays(7);
             case DAILY             -> LocalDateTime.now().plusDays(1);
             case WEEKLY            -> LocalDateTime.now().plusDays(7);
             case MONTHLY           -> LocalDateTime.now().plusDays(30);
