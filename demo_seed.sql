@@ -1,16 +1,13 @@
--- ============================================================
 -- DEMO SEED  —  "Physical Activity Tracking Study"
 -- Researcher login: demo@research.com / Demo1234!
--- 3 participants | 2 surveys | 10 completed submissions
--- ============================================================
+-- 3 participants, 2 surveys, 10 completed submissions
 
--- ─── Wipe all data ───────────────────────────────────────────
+-- Below SQL for Wiping all data or alternative delete the persistent folder in docker. "docker compose down -v"
 -- TRUNCATE TABLE responses, survey_tokens, enrollments,
    --             participants, questions, surveys, studies,
       --          researchers
 -- RESTART IDENTITY CASCADE;
 
--- ↑ Run up to here first, then sign up at /signup, then run the rest below.
 
 -- ─── STOP — sign up first ────────────────────────────────────
 -- After the TRUNCATE above runs, go to the app and sign up at /signup.
