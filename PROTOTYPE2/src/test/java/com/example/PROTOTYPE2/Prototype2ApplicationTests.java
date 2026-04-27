@@ -9,12 +9,4 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 class Prototype2ApplicationTests {
-
-	@Autowired
-	private AuthService authService;
-
-	@Test
-	void testSignup() {
-	}
-
 }
