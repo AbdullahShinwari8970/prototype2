@@ -121,6 +121,8 @@ public class ParticipantService {
         return savedToken;
     }
 
+    //Private Helpers below
+
     private SurveyToken findValidToken(String token) {
         SurveyToken surveyToken = surveyTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid survey link"));
