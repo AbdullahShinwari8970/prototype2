@@ -13,7 +13,6 @@ public class Question {
     @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
     private String text;
 
-    // e.g. "TEXT", "MULTIPLE_CHOICE", "SCALE"
     @Column(name = "question_type", nullable = false)
     private String type;
 

@@ -39,7 +39,7 @@ public class TokenScheduler {
      * Loops through every ACTIVE enrollment, checks each survey's schedule type,
      * and generates a new token if one is due.
      *
-     * INSTANT surveys are skipped here — they are handled immediately at enrolment time
+     * INSTANT surveys are skipped here -> they are handled immediately at enrolment time
      * by EnrollmentService calling createAndSendToken().
      */
     @Scheduled(cron = "0 0 * * * *")

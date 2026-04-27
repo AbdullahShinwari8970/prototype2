@@ -8,7 +8,7 @@ public class QuestionRequest {
     private String text;
 
     @NotBlank(message = "Question type is required")
-    private String type; // TEXT, MULTIPLE_CHOICE, SCALE
+    private String type;
 
     public String getText() { return text; }
     public String getType() { return type; }

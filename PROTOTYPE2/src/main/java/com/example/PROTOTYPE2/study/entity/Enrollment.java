@@ -11,8 +11,8 @@ public class Enrollment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "study_id", nullable = false)
+    @ManyToOne(optional = false) //Many Enrollments can belong to to one study.
+    @JoinColumn(name = "study_id", nullable = false) //for JPA, how we mark foriegh key column
     private Study study;
 
     @ManyToOne(optional = false)

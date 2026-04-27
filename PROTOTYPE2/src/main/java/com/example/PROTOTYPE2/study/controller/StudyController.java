@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Tag(name = "Studies", description = "Manage studies and participant enrollment")
+@Tag(name = "Studies", description = "Manage studies (content and lifecycle), participant enrollment, compliance statistics and Data Export")
 public class StudyController {
 
     private final StudyService studyService;
@@ -34,7 +34,7 @@ public class StudyController {
         this.enrollmentService = enrollmentService;
     }
 
-    @Operation(summary = "Create a study")
+    @Operation(summary = "Create a study") //description at swagger-ui/index.html helped alot.
     @PostMapping("/api/studies")
     public ResponseEntity<?> createStudy(@Valid @RequestBody StudyRequest request,
                                          @AuthenticationPrincipal ResearcherDetailsImpl principal) {
@@ -108,7 +108,7 @@ public class StudyController {
         }
     }
 
-    @Operation(summary = "Deploy a study — flips status to ACTIVE and sends first tokens to all enrolled participants")
+    @Operation(summary = "Deploy a study —> flips status to ACTIVE and sends first tokens to all enrolled participants")
     @PostMapping("/api/studies/{studyId}/deploy")
     public ResponseEntity<?> deployStudy(@PathVariable Long studyId) {
         try {
@@ -118,7 +118,7 @@ public class StudyController {
         }
     }
 
-    @Operation(summary = "Pause a study — stops token sending until resumed")
+    @Operation(summary = "Pause a study —> stops token sending until resumed")
     @PostMapping("/api/studies/{studyId}/pause")
     public ResponseEntity<?> pauseStudy(@PathVariable Long studyId) {
         try {
@@ -198,3 +198,6 @@ public class StudyController {
         }
     }
 }
+
+//@PathVariable extracts the {id} form the URL
+//@AuthenticationPrincipal njects the currently logged in researcher directly from the JWT security context.

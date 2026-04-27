@@ -77,7 +77,7 @@ public class StudyService {
     }
 
     /**
-     * Deploys a study — flips it from DRAFT to ACTIVE and immediately sends the
+     * Deploys a study —> flips it from DRAFT to ACTIVE and immediately sends the
      * first round of survey tokens to every currently ACTIVE enrolled participant.
      * After this, the TokenScheduler handles recurring sends.
      */
@@ -118,7 +118,9 @@ public class StudyService {
         return StudyResponse.from(studyRepository.save(study));
     }
 
-    /** PAUSED → ACTIVE. Resumes token sending. */
+    /**
+     * PAUSED → ACTIVE. Resumes token sending.
+     */
     @Transactional
     public StudyResponse resume(Long studyId) {
         Study study = findOrThrow(studyId);
@@ -129,7 +131,9 @@ public class StudyService {
         return StudyResponse.from(studyRepository.save(study));
     }
 
-    /** ACTIVE or PAUSED → DRAFT. Reverts deployment; no new tokens will be sent. */
+    /**
+     * ACTIVE or PAUSED → DRAFT. Reverts deployment; no new tokens will be sent.
+     */
     @Transactional
     public StudyResponse revert(Long studyId) {
         Study study = findOrThrow(studyId);
@@ -165,9 +169,10 @@ public class StudyService {
 
     @Transactional(readOnly = true)
     public List<StudyResponse> getByResearcher(Long researcherId) {
-        return studyRepository.findByResearcherId(researcherId).stream()
-                .map(StudyResponse::from)
-                .toList();
+        return studyRepository.findByResearcherId(researcherId) // 1. finds the list of studies belonging to this specific research id.
+                .stream() //2. converts list to a stream so we can use .map
+                .map(StudyResponse::from) //3. runs from emthod on every item in the stream bascically converts each study -> study response
+                .toList(); //4. collects back to a list
     }
 
     @Transactional(readOnly = true)
@@ -178,10 +183,11 @@ public class StudyService {
         }
 
         List<SurveyToken> tokens = surveyTokenRepository.findByStudyId(studyId);
+        //Gets every survey token ever generated for this study-> completed, pending, expired all included.
 
         // Group by participantId + surveyId
-        Map<String, long[]> counts = new LinkedHashMap<>();
-        Map<String, String[]> labels = new LinkedHashMap<>();
+        Map<String, long[]> counts = new LinkedHashMap<>(); //Stores [totalSent, totalCompleted] per participant and survey combination.
+        Map<String, String[]> labels = new LinkedHashMap<>(); //stores [participantName, surveyName, participantId, surveyId] for the same combination
 
         for (SurveyToken tok : tokens) {
             Long participantId = tok.getEnrollment().getParticipant().getId();
@@ -189,13 +195,17 @@ public class StudyService {
             Long surveyId = tok.getSurvey().getId();
             String surveyName = tok.getSurvey().getName();
 
+            // Unique key per participant+survey combination: "1-2" = participant 1, survey 2
             String key = participantId + "-" + surveyId;
+            // Only initialise the entry the first time this key is seen —> subsequent tokens update the existing entry
             counts.computeIfAbsent(key, k -> new long[]{0, 0});
             labels.computeIfAbsent(key, k -> new String[]{participantName, surveyName, String.valueOf(participantId), String.valueOf(surveyId)});
 
             counts.get(key)[0]++;
+            // increment total sent for this participant+survey
+
             if ("COMPLETED".equals(tok.getStatus())) {
-                counts.get(key)[1]++;
+                counts.get(key)[1]++; // increment completed count
             }
         }
 

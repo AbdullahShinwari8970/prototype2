@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+//Combines Controller + ResponseBody annotation meaning every method returns a -
+// -JSON instead of a HTML View.
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/auth") //all endpoints are prefixed with this.
 public class AuthController {
 
     @Autowired
@@ -30,3 +32,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 }
+
+//Valid ->triggers the validation annotations defined in the DTO fields before method is executed.
+//RequestBody -> deserializes the incoming JSON body into DTO object.
