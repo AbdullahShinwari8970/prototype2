@@ -19,12 +19,8 @@
 
 ### 2. Set up environment variables
 
-Copy the example env file, It is already setup with credidentials.
+.env is already setup with credidentials.
 Though you can use your own by following the instructions below.
-
-```bash
-cp .env.example .env
-```
 
 Open `.env` and fill in:
 - `POSTGRES_PASSWORD` — any password you choose
