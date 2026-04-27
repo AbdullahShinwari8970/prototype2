@@ -72,7 +72,7 @@ export default function StudyDetailPage() {
     }
   }
 
-  // ── Status actions ───────────────────────────────────────────────────────
+  // Status actions
 
   async function handleStatusAction(action, confirmMsg) {
     if (confirmMsg && !confirm(confirmMsg)) return;
@@ -88,7 +88,7 @@ export default function StudyDetailPage() {
     }
   }
 
-  // ── Enroll ───────────────────────────────────────────────────────────────
+  // Enroll
 
   async function handleEnroll(e) {
     e.preventDefault();
@@ -105,7 +105,7 @@ export default function StudyDetailPage() {
     }
   }
 
-  // ── Withdraw ─────────────────────────────────────────────────────────────
+  // Withdraw
 
   async function handleWithdraw(enrollmentId, participantName) {
     if (!confirm(`Withdraw ${participantName} from this study?`)) return;
@@ -117,7 +117,7 @@ export default function StudyDetailPage() {
     }
   }
 
-  // ── Add Survey ───────────────────────────────────────────────────────────
+  // Add Survey
 
   function addQuestion() { setSurveyQuestions(prev => [...prev, emptyQuestion()]); }
   function removeQuestion(qi) { setSurveyQuestions(prev => prev.filter((_, i) => i !== qi)); }

@@ -44,7 +44,7 @@ export default function CreateStudyPage() {
     if (!isAuthenticated()) router.replace('/login');
   }, [router]);
 
-  // ── Survey handlers ──────────────────────────────────────────────────────
+  // Survey handlers
 
   function addSurvey() {
     setSurveys(prev => [...prev, emptySurvey()]);
@@ -58,7 +58,7 @@ export default function CreateStudyPage() {
     setSurveys(prev => prev.map((s, i) => i === si ? { ...s, [field]: value } : s));
   }
 
-  // ── Question handlers ────────────────────────────────────────────────────
+  // Question handlers
 
   function addQuestion(si) {
     setSurveys(prev => prev.map((s, i) =>
@@ -81,7 +81,7 @@ export default function CreateStudyPage() {
     ));
   }
 
-  // ── Submit ───────────────────────────────────────────────────────────────
+  // Submit now;
 
   async function handleSubmit(e) {
     e.preventDefault();

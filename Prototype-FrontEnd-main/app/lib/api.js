@@ -9,8 +9,7 @@ function authHeaders() {
   };
 }
 
-// ── Studies ───────────────────────────────────────────────────────────────────
-
+// Studies
 export async function getStudies(researcherId) {
   const res = await fetch(`${API_BASE}/api/studies?researcherId=${researcherId}`, {
     headers: authHeaders()
@@ -40,7 +39,7 @@ export async function createFullStudy(studyData) {
   return data;
 }
 
-// ── Surveys ───────────────────────────────────────────────────────────────────
+// Surveys
 
 export async function getSurveyById(surveyId) {
   const res = await fetch(`${API_BASE}/api/surveys/${surveyId}`, {
@@ -51,7 +50,7 @@ export async function getSurveyById(surveyId) {
   return data;
 }
 
-// ── Participants ──────────────────────────────────────────────────────────────
+// Participants
 
 export async function getParticipants(studyId) {
   const res = await fetch(`${API_BASE}/api/studies/${studyId}/participants`, {

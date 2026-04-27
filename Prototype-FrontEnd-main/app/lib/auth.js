@@ -43,7 +43,7 @@ export async function login(email, password) {
     throw new Error(data.error || "Invalid email or password.");
   }
 
-  // Persist auth state
+  //Persist auth state
   localStorage.setItem("token", data.token);
   localStorage.setItem(
     "user",
